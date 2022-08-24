@@ -27,6 +27,7 @@
 #include <Wire.h>
 #include <Firmata.h>
 #include <DHT.h>
+#include <TM1650.h>
 
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -491,20 +492,32 @@ void sysexCallback(byte command, byte argc, byte *argv)
   switch (command) {
     // DHT11
     case 0x28:
-      // byte pin = argv[0];
-      // mode = argv[1];
-      // Serial.println(pin);
-      // switch(mode) {
-      //   case 0:
-          DHT DHT_A0(A0, DHT11);
-          byte DHT_data[64];
-          DHT_data[0] = DHT_A0.readTemperature(false);
-           Serial.println(DHT_data[0]);
-      //     // read temperature
-      //     Firmata.sendSysex(0x88, 1, DHT_data);
-      //     break;
-      // }
+      {
+        byte pin = argv[0];
+        byte dht_mode = argv[1];
+        DHT DHT_INSTANCE(pin, DHT11);
+        byte DHT_data[64];
+        if(dht_mode == 0)
+        {
+          DHT_data[0] = DHT_INSTANCE.readTemperature(false);
+        }
+        if (dht_mode == 1)
+        {
+          DHT_data[0] = DHT_INSTANCE.readHumidity();
+        }
+        Firmata.sendAnalog(pin, DHT_data[0]);
+        }
       break;
+    case 0x29:
+      {
+        byte pina = argv[0];
+        byte pinb = argv[1];
+        byte input = argv[2];
+        TM1650 TM1650_INSTANCE(pina, pinb);
+        TM1650_INSTANCE.init();
+        TM1650_INSTANCE.displayString(input);
+        Firmata.sendAnalog(pina, input);
+      }
     case I2C_REQUEST:
       mode = argv[1] & I2C_READ_WRITE_MODE_MASK;
       if (argv[1] & I2C_10BIT_ADDRESS_MODE_MASK) {
