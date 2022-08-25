@@ -28,6 +28,10 @@
 #include <Firmata.h>
 #include <DHT.h>
 #include <TM1650.h>
+#include <Buzzer.h>
+#include <ws2812b.h>
+#include <Ultrasonic.h>
+#include <servo.h>
 
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -508,16 +512,65 @@ void sysexCallback(byte command, byte argc, byte *argv)
         Firmata.sendAnalog(pin, DHT_data[0]);
         }
       break;
+    // TM1650
     case 0x29:
+    {
+      byte pina = argv[0];
+      byte pinb = argv[1];
+      byte input = argv[2];
+      TM1650 TM1650_INSTANCE(pina, pinb);
+      TM1650_INSTANCE.init();
+      TM1650_INSTANCE.displayString(input);
+      Firmata.sendAnalog(pina, input);
+    }
+    // passiveBuzzer
+    case 0x30:
+    {
+      byte pin = argv[0];
+      byte pb_mode = argv[1];
+      byte tone = argv[2];
+      byte beat = argv[3];
+      Buzzer BUZZER_INSTANCE(pin);
+      float beatTime = 60.0 / 120;
+      if(pb_mode == 0) 
       {
-        byte pina = argv[0];
-        byte pinb = argv[1];
-        byte input = argv[2];
-        TM1650 TM1650_INSTANCE(pina, pinb);
-        TM1650_INSTANCE.init();
-        TM1650_INSTANCE.displayString(input);
-        Firmata.sendAnalog(pina, input);
+        BUZZER_INSTANCE.tone(tone, beat * 1000 * beatTime);
       }
+      if(pb_mode == 1)
+      {
+        BUZZER_INSTANCE.tone(tone, beat);
+      }
+    }
+    // RGBLED
+    case 0x31:
+    {
+      byte pin = argv[0];
+      byte index = argv[1];
+      byte red = argv[2];
+      byte green = argv[3];
+      byte blue = argv[4];
+      Adafruit_NeoPixel RGBLED_INSTANCE(4, pin, NEO_GRB + NEO_KHZ800);
+      RGBLED_INSTANCE.colorWipeSingle(index, red, green, blue);
+    }
+    // ultrasonic
+    case 0x32:
+    {
+      byte pina = argv[0];
+      byte pinb = argv[1];
+      Ultrasonic Ultrasonic_INSTANCE(pina, pinb);
+      byte Ultrasonic_data[64];
+      Ultrasonic_data[0] = Ultrasonic_INSTANCE.read(CM);
+      Firmata.sendAnalog(pina, Ultrasonic_data[0]);
+    }
+    // servo
+    case 0x33:
+    {
+      byte pin = argv[0];
+      byte speed = argv[1];
+      Servo Servo_INSTANCE;
+      Servo_INSTANCE.attch(pin);
+      Servo_INSTANCE.angle(abs(speed));
+    }
     case I2C_REQUEST:
       mode = argv[1] & I2C_READ_WRITE_MODE_MASK;
       if (argv[1] & I2C_10BIT_ADDRESS_MODE_MASK) {
