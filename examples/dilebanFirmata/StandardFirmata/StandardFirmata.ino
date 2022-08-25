@@ -517,12 +517,17 @@ void sysexCallback(byte command, byte argc, byte *argv)
     {
       byte pina = argv[0];
       byte pinb = argv[1];
-      byte input = argv[2];
+      byte inputLength = argv[2];
+      byte[4] input;
+      for(byte i = 0; i < inputLength - 1; i++) {
+        input[i] = argv[i];
+      }
       TM1650 TM1650_INSTANCE(pina, pinb);
       TM1650_INSTANCE.init();
-      TM1650_INSTANCE.displayString(input);
+      TM1650_INSTANCE.displayString(String(input));
       Firmata.sendAnalog(pina, input);
     }
+    break;
     // passiveBuzzer
     case 0x30:
     {
@@ -541,6 +546,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
         BUZZER_INSTANCE.tone(tone, beat);
       }
     }
+    break;
     // RGBLED
     case 0x31:
     {
@@ -552,6 +558,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
       Adafruit_NeoPixel RGBLED_INSTANCE(4, pin, NEO_GRB + NEO_KHZ800);
       RGBLED_INSTANCE.colorWipeSingle(index, red, green, blue);
     }
+    break;
     // ultrasonic
     case 0x32:
     {
@@ -562,15 +569,16 @@ void sysexCallback(byte command, byte argc, byte *argv)
       Ultrasonic_data[0] = Ultrasonic_INSTANCE.read(CM);
       Firmata.sendAnalog(pina, Ultrasonic_data[0]);
     }
+    break;
     // servo
-    case 0x33:
-    {
-      byte pin = argv[0];
-      byte speed = argv[1];
-      Servo Servo_INSTANCE;
-      Servo_INSTANCE.attch(pin);
-      Servo_INSTANCE.angle(abs(speed));
-    }
+    // case 0x33:
+    // {
+    //   byte pin = argv[0];
+    //   byte speed = argv[1];
+    //   ServoDF Servo_INSTANCE;
+    //   Servo_INSTANCE.attach(pin);
+    //   Servo_INSTANCE.angle(abs(speed));
+    // }
     case I2C_REQUEST:
       mode = argv[1] & I2C_READ_WRITE_MODE_MASK;
       if (argv[1] & I2C_10BIT_ADDRESS_MODE_MASK) {
