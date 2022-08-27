@@ -23,7 +23,7 @@
   Last updated August 17th, 2017
 */
 
-#include <Servo.h>
+// #include <Servo.h>
 #include <Wire.h>
 #include <Firmata.h>
 #include <DHT.h>
@@ -31,7 +31,7 @@
 #include <Buzzer.h>
 #include <ws2812b.h>
 #include <Ultrasonic.h>
-#include <servo.h>
+#include <servo1.h>
 
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -89,7 +89,7 @@ signed char queryIndex = -1;
 // default delay time between i2c read request and Wire.requestFrom()
 unsigned int i2cReadDelayTime = 0;
 
-Servo servos[MAX_SERVOS];
+ServoDF servos[MAX_SERVOS];
 byte servoPinMap[TOTAL_PINS];
 byte detachedServos[MAX_SERVOS];
 byte detachedServoCount = 0;
@@ -390,7 +390,7 @@ void analogWriteCallback(byte pin, int value)
     switch (Firmata.getPinMode(pin)) {
       case PIN_MODE_SERVO:
         if (IS_PIN_DIGITAL(pin))
-          servos[servoPinMap[pin]].write(value);
+          servos[servoPinMap[pin]].angle(value);
         Firmata.setPinState(pin, value);
         break;
       case PIN_MODE_PWM:
@@ -517,15 +517,16 @@ void sysexCallback(byte command, byte argc, byte *argv)
     {
       byte pina = argv[0];
       byte pinb = argv[1];
-      byte inputLength = argv[2];
-      byte[4] input;
-      for(byte i = 0; i < inputLength - 1; i++) {
-        input[i] = argv[i];
+      int inputLength = (int)argv[2]; // 3
+      String output;
+      
+      for(int i = 3; i < inputLength + 3; i++) {
+        output.concat(String(argv[i]));
       }
+
       TM1650 TM1650_INSTANCE(pina, pinb);
       TM1650_INSTANCE.init();
-      TM1650_INSTANCE.displayString(String(input));
-      Firmata.sendAnalog(pina, input);
+      TM1650_INSTANCE.displayString(output);
     }
     break;
     // passiveBuzzer
@@ -571,14 +572,15 @@ void sysexCallback(byte command, byte argc, byte *argv)
     }
     break;
     // servo
-    // case 0x33:
-    // {
-    //   byte pin = argv[0];
-    //   byte speed = argv[1];
-    //   ServoDF Servo_INSTANCE;
-    //   Servo_INSTANCE.attach(pin);
-    //   Servo_INSTANCE.angle(abs(speed));
-    // }
+    case 0x33:
+    {
+      byte pin = argv[0];
+      byte speed = argv[1];
+      ServoDF Servo_INSTANCE;
+      Servo_INSTANCE.attach(pin);
+      Servo_INSTANCE.angle(abs(speed));
+    }
+    break;
     case I2C_REQUEST:
       mode = argv[1] & I2C_READ_WRITE_MODE_MASK;
       if (argv[1] & I2C_10BIT_ADDRESS_MODE_MASK) {
