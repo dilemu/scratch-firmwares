@@ -534,8 +534,8 @@ void sysexCallback(byte command, byte argc, byte *argv)
     {
       byte pin = argv[0];
       byte pb_mode = argv[1];
-      byte tone = argv[2];
-      byte beat = argv[3];
+      int tone = argv[2] + (argv[3] << 7);
+      int beat = argv[4] + (argv[5] << 7);
       Buzzer BUZZER_INSTANCE(pin);
       float beatTime = 60.0 / 120;
       if(pb_mode == 0) 
@@ -546,6 +546,8 @@ void sysexCallback(byte command, byte argc, byte *argv)
       {
         BUZZER_INSTANCE.tone(tone, beat);
       }
+      Firmata.sendAnalog(pin, tone);
+      Firmata.sendAnalog(pin, beat);
     }
     break;
     // RGBLED
