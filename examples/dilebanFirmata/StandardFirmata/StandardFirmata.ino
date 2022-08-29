@@ -492,7 +492,6 @@ void sysexCallback(byte command, byte argc, byte *argv)
   int slaveRegister;
   unsigned int delayTime;
   Serial.println(argv[0]);
-
   switch (command) {
     // DHT11
     case 0x28:
@@ -509,8 +508,8 @@ void sysexCallback(byte command, byte argc, byte *argv)
         {
           DHT_data[0] = DHT_INSTANCE.readHumidity();
         }
-        Firmata.sendAnalog(pin, DHT_data[0]);
-        }
+        Firmata.sendAnalog(2, DHT_data[0]);
+      }
       break;
     // TM1650
     case 0x29:
@@ -570,7 +569,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
       Ultrasonic Ultrasonic_INSTANCE(pina, pinb);
       byte Ultrasonic_data[64];
       Ultrasonic_data[0] = Ultrasonic_INSTANCE.read(CM);
-      Firmata.sendAnalog(pina, Ultrasonic_data[0]);
+      Firmata.sendAnalog(2, Ultrasonic_data[0]);
     }
     break;
     // servo
