@@ -17,7 +17,7 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "servo.h"
+#include "servo1.h"
 
 #if defined(NRF5) || defined(NRF52833)
 #include "Microbit_Pwm.h"

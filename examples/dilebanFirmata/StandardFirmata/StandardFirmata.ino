@@ -103,6 +103,9 @@ void setPinModeCallback(byte, int);
 void reportAnalogCallback(byte analogPin, int value);
 void sysexCallback(byte, byte, byte*);
 
+// RGBLED brightness
+byte _brightness = 50;
+
 /* utility functions */
 void wireWrite(byte data)
 {
@@ -558,7 +561,16 @@ void sysexCallback(byte command, byte argc, byte *argv)
       byte green = argv[3];
       byte blue = argv[4];
       Adafruit_NeoPixel RGBLED_INSTANCE(4, pin, NEO_GRB + NEO_KHZ800);
+      RGBLED_INSTANCE.setBrightness(_brightness);
       RGBLED_INSTANCE.colorWipeSingle(index, red, green, blue);
+    }
+    break;
+    case 0x34:
+    {
+      byte pin = argv[0];
+      _brightness = argv[1];
+      Adafruit_NeoPixel RGBLED_INSTANCE(4, pin, NEO_GRB + NEO_KHZ800);
+      RGBLED_INSTANCE.setBrightness(_brightness);
     }
     break;
     // ultrasonic
